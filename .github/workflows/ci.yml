@@ -1,0 +1,36 @@
+# ============================================================================
+# CI：把本地那套工具链原样搬进流水线
+# 对照 Node.js：相当于把 npm ci + lint + typecheck + test 写成 GitHub Actions
+# 关键点：uv sync --locked —— 严格按 uv.lock 安装，禁止 CI 悄悄改版本
+# ============================================================================
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # setup-uv 会顺带按 .python-version 装好解释器（v7 起默认 enable-python）
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install dependencies (from uv.lock)
+        run: uv sync --locked
+
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Type check
+        run: uv run pyright
+
+      - name: Test
+        run: uv run pytest --cov

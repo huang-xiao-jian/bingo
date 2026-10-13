@@ -1,0 +1,30 @@
+# ---- Python 运行产物 ----
+__pycache__/
+*.py[cod]
+
+# ---- 虚拟环境（uv 自动创建，不要提交）----
+.venv/
+
+# ---- 测试与覆盖率产物 ----
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ---- 构建产物 ----
+dist/
+build/
+*.egg-info/
+
+# ---- 工具缓存 ----
+.ruff_cache/
+.mypy_cache/
+.pyright-cache/
+
+# ---- 编辑器 / 系统 ----
+.idea/
+.DS_Store
+
+# ---- 环境变量文件（含密钥，绝不提交）----
+.env
+.env.*

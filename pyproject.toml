@@ -1,0 +1,87 @@
+# ============================================================================
+# pyproject.toml —— Python 项目的"单一事实来源"
+# 对照 Node.js：相当于 package.json + eslint.config.js + prettier.config.js
+#              + jest.config.js + tsconfig.json 合并成一个文件。
+# ============================================================================
+
+[project]
+name = "bingo"
+version = "0.1.0"
+description = "Python 学习项目：现代工具链（uv + Ruff + pyright + pytest）"
+requires-python = ">=3.13"
+dependencies = []
+
+# dev 依赖组，对照 npm 的 devDependencies（用 uv add --dev 维护）
+[dependency-groups]
+dev = [
+    "pyright>=1.1.414",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.0",
+]
+
+# ----------------------------------------------------------------------------
+# 依赖源：PyPI 官方源在中国大陆访问不稳定，固定使用阿里云镜像。
+# 该配置会被记录进 uv.lock，团队成员 clone 后无需任何额外设置即可复现。
+# 想换其他镜像（清华：https://pypi.tuna.tsinghua.edu.cn/simple/）只改 url 即可。
+# ----------------------------------------------------------------------------
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
+
+# ----------------------------------------------------------------------------
+# 构建后端：让本项目可以被"安装"，src/bingo 成为正式的包
+# （uv sync 会自动以可编辑模式安装本项目，这也是 src-layout 生效的关键）
+# ----------------------------------------------------------------------------
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bingo"]
+
+# ----------------------------------------------------------------------------
+# 格式化 + Lint：Ruff（≈ ESLint + Prettier 合体，用 `uv run ruff` 调用）
+# ----------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle 错误
+    "W",   # pycodestyle 警告
+    "F",   # pyflakes：未定义变量、未使用的 import 等真错误
+    "I",   # import 排序（替代 isort）
+    "UP",  # pyupgrade：提示使用更新的语言特性
+    "B",   # flake8-bugbear：常见坑爹写法
+    "SIM", # flake8-simplify：更简洁的等价写法
+    "RUF", # Ruff 自有规则
+]
+ignore = [
+    "E501",   # 行长度统一交给 formatter 管，避免 lint 与格式化互相打架
+    "RUF001", # 中文注释里必然出现全角标点，不视为"歧义字符"
+    "RUF002", # ↑ 同上（docstring）
+    "RUF003", # ↑ 同上（comment）
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+# ----------------------------------------------------------------------------
+# 类型检查：pyright（微软出品，与 VS Code 的 Pylance 同源）
+# 对照 TypeScript：相当于 `tsc --noEmit`
+# ----------------------------------------------------------------------------
+[tool.pyright]
+typeCheckingMode = "standard" # 新人先用 standard 起步，熟练后可切 "strict"
+pythonVersion = "3.13"
+include = ["src", "tests"]
+
+# ----------------------------------------------------------------------------
+# 测试：pytest（对照 Jest / Vitest）
+# ----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"] # src-layout 下防止 ModuleNotFoundError 的保险丝
+addopts = "-ra --strict-markers"
